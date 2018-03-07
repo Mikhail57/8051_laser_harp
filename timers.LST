@@ -1,0 +1,77 @@
+C51 COMPILER V9.57.0.0   TIMERS                                                            03/07/2018 21:47:57 PAGE 1   
+
+
+C51 COMPILER V9.57.0.0, COMPILATION OF MODULE TIMERS
+OBJECT MODULE PLACED IN .\build\timers.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.exe timers.c ROM(COMPACT) OPTIMIZE(8,SPEED) TABS(2) OBJECT(.\build\timers.ob
+                    -j)
+
+line level    source
+
+   1          #include "timers.h"
+   2          
+   3          /*-------------------------
+   4          ---------Timer 0-----------
+   5          -------------------------*/
+   6          
+   7          static void timer0_isr(void) interrupt 1 using 1 {
+   8   1        unsigned i;
+   9   1        // Stop timer 0
+  10   1        TR0 = 0;
+  11   1        
+  12   1        i = TIMER0_COUNT + TL0 + (TH0 << 8);
+  13   1        
+  14   1        TL0 = i;
+  15   1        TH0 = i >> 8;
+  16   1        
+  17   1        // Start timer 0
+  18   1        TR0 = 1;
+  19   1        
+  20   1        //Increnet timer tick
+  21   1        timer0_tick++;
+  22   1      }
+  23          
+  24          void timer0_initialize(void) {
+  25   1        EA = 0; //Disable interrupts
+  26   1        timer0_tick = 0;
+  27   1        
+  28   1        TR0 = 0; // Stop timer 0
+  29   1        
+  30   1        TMOD &= ~0x0F; // Clear timer 0 mode bits
+  31   1        TMOD |= 0x01; // Put timer 0 into 16-bit
+  32   1        
+  33   1        TL0 = (TIMER0_COUNT & 0xFF);
+  34   1        TH0 = TIMER0_COUNT >> 8;
+  35   1        
+  36   1        PT0 = 1;
+  37   1        ET0 = 1;
+  38   1        
+  39   1        TR0 = 1;
+  40   1        EA = 1;
+  41   1      }
+  42          
+  43          unsigned timer0_count() {
+  44   1        unsigned t;
+  45   1        
+  46   1        EA = 0;
+  47   1        t = timer0_tick;
+  48   1        EA = 1;
+  49   1        
+  50   1        return t;
+  51   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V9.57.0.0   TIMERS                                                            03/07/2018 21:47:57 PAGE 2   
+
+   CODE SIZE        =     87    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
