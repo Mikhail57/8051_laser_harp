@@ -20,15 +20,13 @@ unsigned char invert(unsigned char b) {
 }
 
 unsigned char resValues;
-unsigned char tone = 1;
-unsigned start_count;
-unsigned current_count;
+unsigned char tone = 0;
 unsigned diff;
 
 sbit out = P3 ^ 4;
-sbit lowPitch = P3 ^ 5;
-sbit mediumPitch = P3 ^ 6;
-sbit highPitch = P3 ^ 7;
+sbit lowTone = P3 ^ 5;
+sbit mediumTone = P3 ^ 6;
+sbit highTone = P3 ^ 7;
 
 sbit A = P2 ^ 7;
 sbit _B = P2 ^ 6;
@@ -37,7 +35,7 @@ sbit D = P2 ^ 4;
 sbit E = P2 ^ 3;
 sbit F = P2 ^ 2;
 sbit G = P2 ^ 1;
-sbit pitchButton = P2 ^ 0;
+sbit toneButton = P2 ^ 0;
 
 void setup() {
 //	timer0_initialize();
@@ -46,13 +44,25 @@ void setup() {
 }
 
 void delay(unsigned d) {
-	TMOD = 0x01;
-	TH0 = d >> 8;
-	TL0 = d;
-	TR0 = 1;
-	while (TF0 == 0);
-	TR0 = 0;
-	TF0 = 0;
+	TMOD = 0x01; // 16-bit mode for 1st timer
+	TH0 = d >> 8; // high bits
+	TL0 = d; // low bits
+	TR0 = 1; // enable 1st timer
+	while (TF0 == 0); // Wait for flag
+	TR0 = 0; // disable timer
+	TF0 = 0; // Clean flag
+}
+
+void showTone(char tone) {
+	lowTone = 0;
+	mediumTone = 0;
+	highTone = 0;
+	if (tone == 0)
+		lowTone = 1;
+	else if (tone == 1)
+		mediumTone = 1;
+	else if (tone == 2)
+		highTone = 1;
 }
 
 void loop() {
@@ -60,25 +70,28 @@ void loop() {
 	resValues = ~resValues; // Inverse values of resistors to match 1 -- high, 0 -- low
 	P1 = resValues; // Display active notes on LEDs
 
+	if (toneButton)
+		tone = (tone + 1) % 3;
+	
+	showTone(tone);
+	
 	if ((P2 >> 1) != 0)
 		out = ~out;
 	
 	if (A) {
-		delay(0xF880);
+		delay(A1);
 	} else if (_B) {
-		delay(0xF955);
+		delay(B1);
 	} else if (C) {
-		delay(0xFA00);
+		delay(C1);
 	} else if (D) {
-		delay(0xFAAB);
+		delay(D1);
 	} else if (E) {
-		delay(0xFB00);
+		delay(E1);
 	} else if (F) {
-		delay(0xFB80);
+		delay(F1);
 	} else if (G) {
-		delay(0xFC00);
-	} else {
-		diff = 0;
+		delay(G1);
 	}
 }
 
